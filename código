@@ -1,0 +1,439 @@
+import React, { useState } from 'react';
+import { Info, Search, Users, AlertCircle } from 'lucide-react';
+
+const MapaDesaparecidosSP = () => {
+  const [selectedBairro, setSelectedBairro] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredBairro, setHoveredBairro] = useState(null);
+  const [viewMode, setViewMode] = useState('mapa');
+
+  // Posições mais realistas baseadas na geografia de SP
+  const dados = [
+    { bairro: "GRAJAÚ", quantidade: 1946, x: 520, y: 720 },
+    { bairro: "BRASILÂNDIA", quantidade: 1538, x: 350, y: 200 },
+    { bairro: "CIDADE ADEMAR", quantidade: 1456, x: 500, y: 650 },
+    { bairro: "CIDADE TIRADENTES", quantidade: 1436, x: 820, y: 480 },
+    { bairro: "SAPOPEMBA", quantidade: 1381, x: 720, y: 520 },
+    { bairro: "ITAQUERA", quantidade: 1287, x: 760, y: 420 },
+    { bairro: "CAPÃO REDONDO", quantidade: 1255, x: 320, y: 680 },
+    { bairro: "JARDIM ÂNGELA", quantidade: 1159, x: 250, y: 750 },
+    { bairro: "SANTANA", quantidade: 1119, x: 480, y: 280 },
+    { bairro: "JD SÃO LUIS", quantidade: 1103, x: 280, y: 660 },
+    { bairro: "CAMPO LIMPO", quantidade: 1099, x: 300, y: 700 },
+    { bairro: "CIDADE DUTRA", quantidade: 1019, x: 480, y: 760 },
+    { bairro: "ITAIM PAULISTA", quantidade: 976, x: 780, y: 320 },
+    { bairro: "TREMEMBÉ", quantidade: 957, x: 450, y: 150 },
+    { bairro: "SACOMÃ", quantidade: 945, x: 580, y: 550 },
+    { bairro: "PARELHEIROS", quantidade: 910, x: 420, y: 880 },
+    { bairro: "JABAQUARA", quantidade: 899, x: 520, y: 590 },
+    { bairro: "JARAGUÁ", quantidade: 855, x: 250, y: 180 },
+    { bairro: "GUAIANASES", quantidade: 839, x: 820, y: 370 },
+    { bairro: "LAJEADO", quantidade: 834, x: 740, y: 440 },
+    { bairro: "SÃO MATEUS", quantidade: 824, x: 750, y: 480 },
+    { bairro: "PIRITUBA", quantidade: 814, x: 300, y: 260 },
+    { bairro: "PEDREIRA", quantidade: 772, x: 560, y: 620 },
+    { bairro: "VILA CURUCA", quantidade: 738, x: 760, y: 300 },
+    { bairro: "JARDIM HELENA", quantidade: 723, x: 780, y: 260 },
+    { bairro: "CIDADE LÍDER", quantidade: 714, x: 780, y: 460 },
+    { bairro: "SÃO MIGUEL", quantidade: 707, x: 740, y: 340 },
+    { bairro: "FREGUESIA DO Ó", quantidade: 658, x: 320, y: 300 },
+    { bairro: "CACHOEIRINHA", quantidade: 655, x: 380, y: 260 },
+    { bairro: "REPÚBLICA", quantidade: 640, x: 480, y: 460 },
+    { bairro: "VILA JACUÍ", quantidade: 639, x: 700, y: 300 },
+    { bairro: "CENTRO", quantidade: 636, x: 480, y: 480 },
+    { bairro: "IGUATEMI", quantidade: 631, x: 850, y: 440 },
+    { bairro: "VILA MARIA", quantidade: 619, x: 520, y: 320 },
+    { bairro: "IPIRANGA", quantidade: 610, x: 560, y: 520 },
+    { bairro: "PENHA", quantidade: 592, x: 640, y: 380 },
+    { bairro: "ERMELINO MATARAZZO", quantidade: 589, x: 720, y: 360 },
+    { bairro: "VILA MEDEIROS", quantidade: 584, x: 460, y: 300 },
+    { bairro: "SANTO AMARO", quantidade: 577, x: 420, y: 560 },
+    { bairro: "CANGAÍBA", quantidade: 568, x: 660, y: 340 },
+    { bairro: "SÃO RAFAEL", quantidade: 567, x: 820, y: 540 },
+    { bairro: "SÃO LUCAS", quantidade: 541, x: 620, y: 490 },
+    { bairro: "JOSÉ BONIFÁCIO", quantidade: 528, x: 850, y: 480 },
+    { bairro: "RAPOSO TAVARES", quantidade: 526, x: 180, y: 480 },
+    { bairro: "ARTUR ALVIM", quantidade: 520, x: 680, y: 420 },
+    { bairro: "VILA MATILDE", quantidade: 510, x: 600, y: 460 },
+    { bairro: "PARQUE DO CARMO", quantidade: 508, x: 790, y: 560 },
+    { bairro: "VILA MARIANA", quantidade: 495, x: 500, y: 500 },
+    { bairro: "RIO PEQUENO", quantidade: 483, x: 260, y: 460 },
+    { bairro: "SÉ", quantidade: 480, x: 480, y: 470 }
+  ];
+
+  const maxQuantidade = Math.max(...dados.map(d => d.quantidade));
+  const minQuantidade = Math.min(...dados.map(d => d.quantidade));
+
+  const getRadius = (quantidade) => {
+    const minRadius = 12;
+    const maxRadius = 50;
+    const normalized = (quantidade - minQuantidade) / (maxQuantidade - minQuantidade);
+    return minRadius + (normalized * (maxRadius - minRadius));
+  };
+
+  const getColor = (quantidade) => {
+    const intensity = (quantidade - minQuantidade) / (maxQuantidade - minQuantidade);
+    if (intensity > 0.8) return '#dc2626';
+    if (intensity > 0.6) return '#ea580c';
+    if (intensity > 0.4) return '#f59e0b';
+    if (intensity > 0.2) return '#fbbf24';
+    return '#fde047';
+  };
+
+  const dadosFiltrados = dados.filter(d => 
+    d.bairro.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalDesaparecimentos = dados.reduce((sum, d) => sum + d.quantidade, 0);
+
+  // Contorno simplificado de São Paulo
+  const spContorno = `
+    M 300 150
+    Q 250 100, 200 150
+    L 180 200
+    Q 170 250, 200 300
+    L 250 400
+    Q 240 450, 260 500
+    L 280 600
+    Q 290 700, 350 750
+    L 400 820
+    Q 450 900, 520 880
+    L 600 850
+    Q 680 880, 750 820
+    L 820 750
+    Q 870 680, 880 600
+    L 900 500
+    Q 880 400, 840 350
+    L 800 280
+    Q 780 220, 740 180
+    L 680 150
+    Q 600 120, 520 140
+    L 450 160
+    Q 380 140, 300 150
+    Z
+  `;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
+            Desaparecimentos em São Paulo
+          </h1>
+          <p className="text-slate-400 text-lg">Dados baseados em Boletins de Ocorrência por bairro</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <Users className="text-red-400" size={32} />
+              <div>
+                <p className="text-slate-400 text-sm">Total de Registros</p>
+                <p className="text-3xl font-bold">{totalDesaparecimentos.toLocaleString('pt-BR')}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-orange-400" size={32} />
+              <div>
+                <p className="text-slate-400 text-sm">Bairros Monitorados</p>
+                <p className="text-3xl font-bold">{dados.length}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <Info className="text-blue-400" size={32} />
+              <div>
+                <p className="text-slate-400 text-sm">Bairro Mais Afetado</p>
+                <p className="text-xl font-bold">{dados[0].bairro}</p>
+                <p className="text-sm text-slate-400">{dados[0].quantidade} registros</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 mb-6 flex-wrap">
+          <div className="relative flex-1 min-w-[250px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar bairro..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('mapa')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                viewMode === 'mapa' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-slate-800/50 border border-slate-700 text-slate-300 hover:border-orange-500'
+              }`}
+            >
+              Mapa
+            </button>
+            <button
+              onClick={() => setViewMode('ranking')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                viewMode === 'ranking' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-slate-800/50 border border-slate-700 text-slate-300 hover:border-orange-500'
+              }`}
+            >
+              Ranking
+            </button>
+          </div>
+        </div>
+
+        {viewMode === 'mapa' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-slate-800/30 backdrop-blur border border-slate-700 rounded-xl p-6">
+              <div className="relative w-full aspect-square max-w-3xl mx-auto">
+                <svg 
+                  viewBox="0 0 1000 1000" 
+                  className="w-full h-full"
+                  style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.5))' }}
+                >
+                  <defs>
+                    <linearGradient id="mapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#1e293b" />
+                      <stop offset="100%" stopColor="#0f172a" />
+                    </linearGradient>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  
+
+
+                  {/* Linhas de grade sutis */}
+                  <g opacity="0.1" stroke="#64748b" strokeWidth="1">
+                    {[...Array(10)].map((_, i) => (
+                      <React.Fragment key={i}>
+                        <line x1={100 + i * 80} y1="100" x2={100 + i * 80} y2="900" />
+                        <line x1="100" y1={100 + i * 80} x2="900" y2={100 + i * 80} />
+                      </React.Fragment>
+                    ))}
+                  </g>
+
+                  {/* Rótulos de direção */}
+                  <text x="500" y="80" textAnchor="middle" fill="#64748b" fontSize="20" fontWeight="bold">
+                    NORTE
+                  </text>
+                  <text x="500" y="960" textAnchor="middle" fill="#64748b" fontSize="20" fontWeight="bold">
+                    SUL
+                  </text>
+                  <text x="80" y="500" textAnchor="middle" fill="#64748b" fontSize="20" fontWeight="bold" transform="rotate(-90 80 500)">
+                    OESTE
+                  </text>
+                  <text x="920" y="500" textAnchor="middle" fill="#64748b" fontSize="20" fontWeight="bold" transform="rotate(90 920 500)">
+                    LESTE
+                  </text>
+                  
+                  {/* Círculos dos bairros */}
+                  {dadosFiltrados.map((d, i) => {
+                    const radius = getRadius(d.quantidade);
+                    const color = getColor(d.quantidade);
+                    const isSelected = selectedBairro?.bairro === d.bairro;
+                    const isHovered = hoveredBairro?.bairro === d.bairro;
+                    
+                    return (
+                      <g key={i}>
+                        {/* Glow effect para selecionado/hover */}
+                        {(isSelected || isHovered) && (
+                          <circle
+                            cx={d.x}
+                            cy={d.y}
+                            r={radius + 8}
+                            fill={color}
+                            opacity="0.3"
+                            filter="url(#glow)"
+                          />
+                        )}
+                        
+                        <circle
+                          cx={d.x}
+                          cy={d.y}
+                          r={radius}
+                          fill={color}
+                          opacity={isSelected || isHovered ? 0.95 : 0.7}
+                          stroke={isSelected || isHovered ? 'white' : color}
+                          strokeWidth={isSelected || isHovered ? 3 : 1}
+                          className="cursor-pointer transition-all duration-300"
+                          onMouseEnter={() => setHoveredBairro(d)}
+                          onMouseLeave={() => setHoveredBairro(null)}
+                          onClick={() => setSelectedBairro(d)}
+                          style={{
+                            transform: isSelected || isHovered ? 'scale(1.15)' : 'scale(1)',
+                            transformOrigin: `${d.x}px ${d.y}px`,
+                            transition: 'all 0.3s ease'
+                          }}
+                        />
+                        
+                        {(isSelected || isHovered) && (
+                          <>
+                            <text
+                              x={d.x}
+                              y={d.y - radius - 15}
+                              textAnchor="middle"
+                              fontSize="16"
+                              fill="white"
+                              fontWeight="bold"
+                              style={{ pointerEvents: 'none' }}
+                            >
+                              {d.bairro}
+                            </text>
+                            <text
+                              x={d.x}
+                              y={d.y - radius - 2}
+                              textAnchor="middle"
+                              fontSize="14"
+                              fill="#fbbf24"
+                              fontWeight="bold"
+                              style={{ pointerEvents: 'none' }}
+                            >
+                              {d.quantidade} casos
+                            </text>
+                          </>
+                        )}
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+
+              {/* Legenda */}
+              <div className="mt-6 flex items-center justify-center gap-6 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-red-600"></div>
+                  <span className="text-sm text-slate-300">Muito Alto (&gt;1500)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-orange-600"></div>
+                  <span className="text-sm text-slate-300">Alto (1000-1500)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+                  <span className="text-sm text-slate-300">Médio (700-1000)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-300"></div>
+                  <span className="text-sm text-slate-300">Baixo (&lt;700)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Info Panel */}
+            <div className="bg-slate-800/30 backdrop-blur border border-slate-700 rounded-xl p-6">
+              <h3 className="text-xl font-bold mb-4">
+                {selectedBairro || hoveredBairro ? 'Detalhes do Bairro' : 'Informações'}
+              </h3>
+              
+              {selectedBairro || hoveredBairro ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-2xl font-bold text-orange-400">
+                      {(selectedBairro || hoveredBairro).bairro}
+                    </p>
+                    <p className="text-slate-400 text-sm mt-1">
+                      Ranking: #{dados.findIndex(d => d.bairro === (selectedBairro || hoveredBairro).bairro) + 1} de {dados.length}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-slate-900/50 rounded-lg p-4">
+                    <p className="text-slate-400 text-sm mb-1">Total de Registros</p>
+                    <p className="text-4xl font-bold">
+                      {(selectedBairro || hoveredBairro).quantidade.toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-900/50 rounded-lg p-4">
+                    <p className="text-slate-400 text-sm mb-1">Percentual do Total</p>
+                    <p className="text-2xl font-bold">
+                      {((selectedBairro || hoveredBairro).quantidade / totalDesaparecimentos * 100).toFixed(2)}%
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-900/50 rounded-lg p-4">
+                    <p className="text-slate-400 text-sm mb-2">Comparação com média</p>
+                    <div className="w-full bg-slate-700 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-orange-500 to-red-500 h-3 rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${Math.min(100, ((selectedBairro || hoveredBairro).quantidade / maxQuantidade) * 100)}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-slate-400 space-y-3">
+                  <p>Clique em um círculo no mapa para ver detalhes do bairro.</p>
+                  <div className="bg-slate-900/50 rounded-lg p-4 mt-4">
+                    <p className="text-sm">
+                      <strong className="text-white">Como ler o mapa:</strong>
+                    </p>
+                    <ul className="text-sm mt-2 space-y-1 list-disc list-inside">
+                      <li>Tamanho do círculo = quantidade de registros</li>
+                      <li>Cor = intensidade dos casos</li>
+                      <li>Posição geográfica aproximada</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-slate-800/30 backdrop-blur border border-slate-700 rounded-xl p-6">
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              {dadosFiltrados.map((d, i) => (
+                <div
+                  key={i}
+                  onClick={() => {
+                    setSelectedBairro(d);
+                    setViewMode('mapa');
+                  }}
+                  className="flex items-center gap-4 p-4 bg-slate-900/30 rounded-lg hover:bg-slate-900/50 cursor-pointer transition-all group"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center font-bold text-lg">
+                    {dados.findIndex(item => item.bairro === d.bairro) + 1}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-lg truncate group-hover:text-orange-400 transition-colors">
+                      {d.bairro}
+                    </p>
+                    <div className="w-full bg-slate-700 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${(d.quantidade / maxQuantidade) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-2xl font-bold">{d.quantidade.toLocaleString('pt-BR')}</p>
+                    <p className="text-sm text-slate-400">registros</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MapaDesaparecidosSP;
