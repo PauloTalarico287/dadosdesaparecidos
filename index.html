@@ -1,113 +1,576 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desaparecimentos em São Paulo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Mapa de Desaparecimentos em São Paulo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
-        .transition-all {
-            transition: all 0.3s ease;
+
+        body {
+            background-color: #333366;
+            color: white;
+            min-height: 100vh;
         }
-        .circle-hover:hover {
-            transform: scale(1.15);
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .container { padding: 1.5rem; }
+        }
+
+        @media (min-width: 1024px) {
+            .container { padding: 2rem; }
+        }
+
+        .header {
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .header { margin-bottom: 2rem; }
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        @media (min-width: 640px) {
+            .title { font-size: 1.875rem; }
+        }
+
+        @media (min-width: 1024px) {
+            .title { font-size: 2.25rem; }
+        }
+
+        .subtitle {
+            color: #e5e7eb;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        @media (min-width: 640px) {
+            .subtitle { font-size: 1rem; }
+        }
+
+        @media (min-width: 1024px) {
+            .subtitle { font-size: 1.125rem; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .stat-card { padding: 1rem; }
+        }
+
+        .stat-card svg {
+            flex-shrink: 0;
+        }
+
+        .stat-label {
+            color: #e5e7eb;
+            font-size: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .stat-label { font-size: 0.875rem; }
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        @media (min-width: 640px) {
+            .stat-value { font-size: 1.875rem; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 640px) {
+            .controls {
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #e5e7eb;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.625rem 1rem 0.625rem 2.5rem;
+            color: white;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        @media (min-width: 640px) {
+            .search-input {
+                padding: 0.75rem 1rem 0.75rem 2.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        .search-input::placeholder {
+            color: #d1d5db;
+        }
+
+        .search-input:focus {
+            border-color: #fde047;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            font-size: 0.875rem;
             cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            border: none;
+        }
+
+        @media (min-width: 640px) {
+            .btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        .btn-active {
+            background: #fde047;
+            color: #333366;
+        }
+
+        .btn-inactive {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-inactive:hover {
+            border-color: #fde047;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 2fr 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .card { padding: 1.5rem; }
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            max-width: 48rem;
+            margin: 0 auto;
+        }
+
+        .map-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 20px rgba(0,0,0,0.5));
+        }
+
+        .legend {
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .legend {
+                margin-top: 1.5rem;
+                gap: 1.5rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .info-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        @media (min-width: 640px) {
+            .info-title { font-size: 1.25rem; }
+        }
+
+        .info-content {
+            color: #e5e7eb;
+            font-size: 0.875rem;
+        }
+
+        @media (min-width: 640px) {
+            .info-content { font-size: 1rem; }
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .info-box { padding: 1rem; }
+        }
+
+        .detail-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .detail-card { padding: 1rem; }
+        }
+
+        .ranking-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        @media (min-width: 640px) {
+            .ranking-item {
+                gap: 1rem;
+                padding: 1rem;
+            }
+        }
+
+        .ranking-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ranking-number {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, #fde047, #f97316);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #333366;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 640px) {
+            .ranking-number {
+                width: 3rem;
+                height: 3rem;
+                font-size: 1.125rem;
+            }
+        }
+
+        .ranking-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ranking-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.3s;
+        }
+
+        @media (min-width: 640px) {
+            .ranking-name { font-size: 1.125rem; }
+        }
+
+        .ranking-item:hover .ranking-name {
+            color: #fde047;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            height: 0.5rem;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #fde047, #ef4444);
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s;
+        }
+
+        .ranking-stats {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .ranking-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        @media (min-width: 640px) {
+            .ranking-value { font-size: 1.5rem; }
+        }
+
+        .ranking-label {
+            font-size: 0.75rem;
+            color: #e5e7eb;
+        }
+
+        @media (min-width: 640px) {
+            .ranking-label { font-size: 0.875rem; }
+        }
+
+        .fonte {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #e5e7eb;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (min-width: 640px) {
+            .fonte {
+                margin-top: 2rem;
+                font-size: 0.875rem;
+                padding: 1rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .space-y-3 > * + * {
+            margin-top: 0.75rem;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        ul {
+            list-style: disc;
+            padding-left: 1.25rem;
+        }
+
+        li {
+            margin-top: 0.25rem;
+        }
+
+        @media (min-width: 640px) {
+            .card-lg-span-2 {
+                grid-column: span 2;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .card-lg-span-2 {
+                grid-column: span 2;
+            }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen">
-    <div class="max-w-7xl mx-auto p-6">
+<body>
+    <div class="container">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
-                Desaparecimentos em São Paulo
-            </h1>
-            <p class="text-slate-400 text-lg">Dados baseados em Boletins de Ocorrência por bairro</p>
+        <div class="header">
+            <h1 class="title">Desaparecimentos em São Paulo</h1>
+            <p class="subtitle">
+                Dados das 50 regiões com mais casos com base nos boletins de ocorrência dos últimos 10 anos
+            </p>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
-                <div class="flex items-center gap-3">
-                    <svg class="text-red-400" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <div>
-                        <p class="text-slate-400 text-sm">Total de registros dos 50 bairros com mais ocorrências</p>
-                        <p class="text-3xl font-bold" id="total-registros">41.461</p>
-                    </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fde047" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <div>
+                    <p class="stat-label">Total de Registros</p>
+                    <p class="stat-value" id="total-registros">45.388</p>
                 </div>
             </div>
             
-            <div class="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
-                <div class="flex items-center gap-3">
-                    <svg class="text-orange-400" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    <div>
-                        <p class="text-slate-400 text-sm">Bairros Monitorados</p>
-                        <p class="text-3xl font-bold">50</p>
-                    </div>
+            <div class="stat-card">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <div>
+                    <p class="stat-label">Regiões Monitoradas</p>
+                    <p class="stat-value">50</p>
                 </div>
             </div>
 
-            <div class="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
-                <div class="flex items-center gap-3">
-                    <svg class="text-blue-400" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M12 16v-4"></path>
-                        <path d="M12 8h.01"></path>
-                    </svg>
-                    <div>
-                        <p class="text-slate-400 text-sm">Bairro Mais Afetado</p>
-                        <p class="text-xl font-bold">GRAJAÚ</p>
-                        <p class="text-sm text-slate-400">1946 registros</p>
-                    </div>
+            <div class="stat-card">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                </svg>
+                <div>
+                    <p class="stat-label">Região Mais Afetada</p>
+                    <p class="stat-value" style="font-size: 1.125rem;">GRAJAÚ</p>
+                    <p class="stat-label">1.946 registros</p>
                 </div>
             </div>
         </div>
 
         <!-- Controls -->
-        <div class="flex gap-4 mb-6 flex-wrap">
-            <div class="relative flex-1 min-w-[250px]">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="controls">
+            <div class="search-container">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"></circle>
                     <path d="m21 21-4.35-4.35"></path>
                 </svg>
-                <input
-                    type="text"
-                    id="search-input"
-                    placeholder="Buscar bairro..."
-                    class="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
-                />
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar região...">
             </div>
             
-            <div class="flex gap-2">
-                <button id="btn-mapa" class="px-6 py-3 rounded-xl font-medium transition-all bg-orange-500 text-white">
-                    Mapa
-                </button>
-                <button id="btn-ranking" class="px-6 py-3 rounded-xl font-medium transition-all bg-slate-800/50 border border-slate-700 text-slate-300 hover:border-orange-500">
-                    Ranking
-                </button>
+            <div class="button-group">
+                <button id="btn-mapa" class="btn btn-active">Mapa</button>
+                <button id="btn-ranking" class="btn btn-inactive">Ranking</button>
             </div>
         </div>
 
         <!-- Main Content -->
-        <div id="view-mapa" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div id="view-mapa" class="main-grid">
             <!-- Mapa -->
-            <div class="lg:col-span-2 bg-slate-800/30 backdrop-blur border border-slate-700 rounded-xl p-6">
-                <div class="relative w-full aspect-square max-w-3xl mx-auto">
-                    <svg id="mapa-svg" viewBox="0 0 1000 1000" class="w-full h-full" style="filter: drop-shadow(0 4px 20px rgba(0,0,0,0.5))">
+            <div class="card" style="grid-column: span 1;">
+                <div class="map-container">
+                    <svg id="mapa-svg" viewBox="0 0 1000 1000" class="map-svg">
                         <defs>
                             <filter id="glow">
                                 <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -119,13 +582,13 @@
                         </defs>
                         
                         <!-- Linhas de grade -->
-                        <g opacity="0.1" stroke="#64748b" stroke-width="1" id="grid"></g>
+                        <g opacity="0.1" stroke="#ffffff" stroke-width="1" id="grid"></g>
 
                         <!-- Rótulos -->
-                        <text x="500" y="80" text-anchor="middle" fill="#64748b" font-size="20" font-weight="bold">NORTE</text>
-                        <text x="500" y="960" text-anchor="middle" fill="#64748b" font-size="20" font-weight="bold">SUL</text>
-                        <text x="80" y="500" text-anchor="middle" fill="#64748b" font-size="20" font-weight="bold" transform="rotate(-90 80 500)">OESTE</text>
-                        <text x="920" y="500" text-anchor="middle" fill="#64748b" font-size="20" font-weight="bold" transform="rotate(90 920 500)">LESTE</text>
+                        <text x="500" y="80" text-anchor="middle" fill="#e5e7eb" font-size="20" font-weight="bold">NORTE</text>
+                        <text x="500" y="960" text-anchor="middle" fill="#e5e7eb" font-size="20" font-weight="bold">SUL</text>
+                        <text x="80" y="500" text-anchor="middle" fill="#e5e7eb" font-size="20" font-weight="bold" transform="rotate(-90 80 500)">OESTE</text>
+                        <text x="920" y="500" text-anchor="middle" fill="#e5e7eb" font-size="20" font-weight="bold" transform="rotate(90 920 500)">LESTE</text>
                         
                         <!-- Círculos serão inseridos aqui -->
                         <g id="circles-container"></g>
@@ -133,37 +596,37 @@
                 </div>
 
                 <!-- Legenda -->
-                <div class="mt-6 flex items-center justify-center gap-6 flex-wrap">
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-red-600"></div>
-                        <span class="text-sm text-slate-300">Muito Alto (&gt;1500)</span>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="width: 1.5rem; height: 1.5rem; background: #dc2626;"></div>
+                        <span>Muito Alto (&gt;1500)</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-5 h-5 rounded-full bg-orange-600"></div>
-                        <span class="text-sm text-slate-300">Alto (1000-1500)</span>
+                    <div class="legend-item">
+                        <div class="legend-color" style="width: 1.25rem; height: 1.25rem; background: #ea580c;"></div>
+                        <span>Alto (1000-1500)</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 rounded-full bg-yellow-500"></div>
-                        <span class="text-sm text-slate-300">Médio (700-1000)</span>
+                    <div class="legend-item">
+                        <div class="legend-color" style="width: 1rem; height: 1rem; background: #f59e0b;"></div>
+                        <span>Médio (700-1000)</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-yellow-300"></div>
-                        <span class="text-sm text-slate-300">Baixo (&lt;700)</span>
+                    <div class="legend-item">
+                        <div class="legend-color" style="width: 0.75rem; height: 0.75rem; background: #fde047;"></div>
+                        <span>Baixo (&lt;700)</span>
                     </div>
                 </div>
             </div>
 
             <!-- Info Panel -->
-            <div class="bg-slate-800/30 backdrop-blur border border-slate-700 rounded-xl p-6">
-                <h3 class="text-xl font-bold mb-4" id="info-title">Informações</h3>
+            <div class="card">
+                <h3 class="info-title" id="info-title">Informações</h3>
                 
-                <div id="info-content" class="text-slate-400 space-y-3">
-                    <p>Clique em um círculo no mapa para ver detalhes do bairro.</p>
-                    <div class="bg-slate-900/50 rounded-lg p-4 mt-4">
-                        <p class="text-sm">
-                            <strong class="text-white">Como ler o mapa:</strong>
+                <div id="info-content" class="info-content">
+                    <p>Clique em um círculo no mapa para ver detalhes da região.</p>
+                    <div class="info-box">
+                        <p style="font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <strong style="color: white;">Como ler o mapa:</strong>
                         </p>
-                        <ul class="text-sm mt-2 space-y-1 list-disc list-inside">
+                        <ul style="font-size: 0.75rem;">
                             <li>Tamanho do círculo = quantidade de registros</li>
                             <li>Cor = intensidade dos casos</li>
                             <li>Posição geográfica aproximada</li>
@@ -174,8 +637,14 @@
         </div>
 
         <!-- Ranking View (hidden by default) -->
-        <div id="view-ranking" class="hidden bg-slate-800/30 backdrop-blur border border-slate-700 rounded-xl p-6">
-            <div id="ranking-container" class="space-y-2 max-h-[600px] overflow-y-auto"></div>
+        <div id="view-ranking" class="card hidden">
+            <div id="ranking-container" class="ranking-container"></div>
+        </div>
+
+        <!-- Fonte -->
+        <div class="fonte">
+            <p style="font-weight: 600; margin-bottom: 0.25rem;">Fonte:</p>
+            <p>Dados obtidos pela Agência Mural por meio da LAI (Lei de Acesso à Informação) extraídos do sistema de RDO (Registro Digital de Ocorrências).</p>
         </div>
     </div>
 
@@ -278,191 +747,9 @@
             const container = document.getElementById('circles-container');
             container.innerHTML = '';
 
-            filteredDados.forEach((d, i) => {
+            filteredDados.forEach((d) => {
                 const radius = getRadius(d.quantidade);
                 const color = getColor(d.quantidade);
 
                 const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                 g.setAttribute('data-bairro', d.bairro);
-                
-                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('cx', d.x);
-                circle.setAttribute('cy', d.y);
-                circle.setAttribute('r', radius);
-                circle.setAttribute('fill', color);
-                circle.setAttribute('opacity', '0.7');
-                circle.setAttribute('stroke', color);
-                circle.setAttribute('stroke-width', '1');
-                circle.style.cursor = 'pointer';
-                circle.style.transition = 'all 0.3s ease';
-
-                circle.addEventListener('mouseenter', () => {
-                    circle.setAttribute('opacity', '0.95');
-                    circle.setAttribute('stroke', 'white');
-                    circle.setAttribute('stroke-width', '3');
-                    circle.style.transform = 'scale(1.15)';
-                    circle.style.transformOrigin = `${d.x}px ${d.y}px`;
-                    showTooltip(d, d.x, d.y, radius);
-                });
-
-                circle.addEventListener('mouseleave', () => {
-                    if (selectedBairro?.bairro !== d.bairro) {
-                        circle.setAttribute('opacity', '0.7');
-                        circle.setAttribute('stroke', color);
-                        circle.setAttribute('stroke-width', '1');
-                        circle.style.transform = 'scale(1)';
-                        hideTooltip();
-                    }
-                });
-
-                circle.addEventListener('click', () => {
-                    selectedBairro = d;
-                    showBairroInfo(d);
-                    renderCircles();
-                });
-
-                g.appendChild(circle);
-                container.appendChild(g);
-            });
-        }
-
-        function showTooltip(d, x, y, radius) {
-            const container = document.getElementById('circles-container');
-            
-            const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            tooltip.setAttribute('id', 'tooltip');
-            
-            const text1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text1.setAttribute('x', x);
-            text1.setAttribute('y', y - radius - 15);
-            text1.setAttribute('text-anchor', 'middle');
-            text1.setAttribute('font-size', '16');
-            text1.setAttribute('fill', 'white');
-            text1.setAttribute('font-weight', 'bold');
-            text1.textContent = d.bairro;
-            
-            const text2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text2.setAttribute('x', x);
-            text2.setAttribute('y', y - radius - 2);
-            text2.setAttribute('text-anchor', 'middle');
-            text2.setAttribute('font-size', '14');
-            text2.setAttribute('fill', '#fbbf24');
-            text2.setAttribute('font-weight', 'bold');
-            text2.textContent = `${d.quantidade} casos`;
-            
-            tooltip.appendChild(text1);
-            tooltip.appendChild(text2);
-            container.appendChild(tooltip);
-        }
-
-        function hideTooltip() {
-            const tooltip = document.getElementById('tooltip');
-            if (tooltip) tooltip.remove();
-        }
-
-        function showBairroInfo(d) {
-            const ranking = dados.findIndex(item => item.bairro === d.bairro) + 1;
-            const total = dados.reduce((sum, item) => sum + item.quantidade, 0);
-            const percentual = ((d.quantidade / total) * 100).toFixed(2);
-            const comparacao = Math.min(100, (d.quantidade / maxQuantidade) * 100);
-
-            document.getElementById('info-title').textContent = 'Detalhes do Bairro';
-            document.getElementById('info-content').innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <p class="text-2xl font-bold text-orange-400">${d.bairro}</p>
-                        <p class="text-slate-400 text-sm mt-1">Ranking: #${ranking} de ${dados.length}</p>
-                    </div>
-                    
-                    <div class="bg-slate-900/50 rounded-lg p-4">
-                        <p class="text-slate-400 text-sm mb-1">Total de Registros</p>
-                        <p class="text-4xl font-bold">${d.quantidade.toLocaleString('pt-BR')}</p>
-                    </div>
-
-                    <div class="bg-slate-900/50 rounded-lg p-4">
-                        <p class="text-slate-400 text-sm mb-1">Percentual do Total</p>
-                        <p class="text-2xl font-bold">${percentual}%</p>
-                    </div>
-
-                    <div class="bg-slate-900/50 rounded-lg p-4">
-                        <p class="text-slate-400 text-sm mb-2">Comparação com média</p>
-                        <div class="w-full bg-slate-700 rounded-full h-3">
-                            <div class="bg-gradient-to-r from-orange-500 to-red-500 h-3 rounded-full transition-all duration-500" style="width: ${comparacao}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderRanking() {
-            const container = document.getElementById('ranking-container');
-            container.innerHTML = '';
-
-            filteredDados.forEach((d, i) => {
-                const ranking = dados.findIndex(item => item.bairro === d.bairro) + 1;
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-4 p-4 bg-slate-900/30 rounded-lg hover:bg-slate-900/50 cursor-pointer transition-all group';
-                div.innerHTML = `
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center font-bold text-lg">
-                        ${ranking}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-lg truncate group-hover:text-orange-400 transition-colors">${d.bairro}</p>
-                        <div class="w-full bg-slate-700 rounded-full h-2 mt-2">
-                            <div class="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-500" style="width: ${(d.quantidade / maxQuantidade) * 100}%"></div>
-                        </div>
-                    </div>
-                    <div class="text-right flex-shrink-0">
-                        <p class="text-2xl font-bold">${d.quantidade.toLocaleString('pt-BR')}</p>
-                        <p class="text-sm text-slate-400">registros</p>
-                    </div>
-                `;
-                div.addEventListener('click', () => {
-                    selectedBairro = d;
-                    switchView('mapa');
-                    showBairroInfo(d);
-                    renderCircles();
-                });
-                container.appendChild(div);
-            });
-        }
-
-        function switchView(view) {
-            const mapaView = document.getElementById('view-mapa');
-            const rankingView = document.getElementById('view-ranking');
-            const btnMapa = document.getElementById('btn-mapa');
-            const btnRanking = document.getElementById('btn-ranking');
-
-            if (view === 'mapa') {
-                mapaView.classList.remove('hidden');
-                rankingView.classList.add('hidden');
-                btnMapa.className = 'px-6 py-3 rounded-xl font-medium transition-all bg-orange-500 text-white';
-                btnRanking.className = 'px-6 py-3 rounded-xl font-medium transition-all bg-slate-800/50 border border-slate-700 text-slate-300 hover:border-orange-500';
-            } else {
-                mapaView.classList.add('hidden');
-                rankingView.classList.remove('hidden');
-                btnRanking.className = 'px-6 py-3 rounded-xl font-medium transition-all bg-orange-500 text-white';
-                btnMapa.className = 'px-6 py-3 rounded-xl font-medium transition-all bg-slate-800/50 border border-slate-700 text-slate-300 hover:border-orange-500';
-                renderRanking();
-            }
-        }
-
-        // Event Listeners
-        document.getElementById('btn-mapa').addEventListener('click', () => switchView('mapa'));
-        document.getElementById('btn-ranking').addEventListener('click', () => switchView('ranking'));
-
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            filteredDados = dados.filter(d => d.bairro.toLowerCase().includes(term));
-            renderCircles();
-            if (document.getElementById('view-ranking').classList.contains('hidden') === false) {
-                renderRanking();
-            }
-        });
-
-        // Initialize
-        renderGrid();
-        renderCircles();
-    </script>
-</body>
-</html>
